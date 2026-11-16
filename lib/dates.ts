@@ -1,8 +1,8 @@
-export const BRANCH_TIME_ZONE = 'America/Denver';
+export const WARD_TIME_ZONE = 'America/Denver';
 
 /** This week's Sunday as 'YYYY-MM-DD' (today, if today is Sunday). */
-export function currentSunday(timeZone: string = BRANCH_TIME_ZONE): string {
-    // 1. Today's date where the branch is, e.g. "2026-11-09"
+export function currentSunday(timeZone: string = WARD_TIME_ZONE): string {
+    // 1. Today's date where the ward is, e.g. "2026-11-09"
     const todayString = new Date().toLocaleDateString('en-CA', { timeZone });
 
     // 2. Rebuild it as midnight UTC, so no time zone can shift it

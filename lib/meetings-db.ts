@@ -37,7 +37,7 @@ const meetings: SacramentMeeting[] = [
         closingPrayer: 'Brother Hall',
         announcements: [
             'Fast offerings may be given to any member of the bishopric',
-            'Branch Christmas party sign-ups are in the foyer'
+            'Ward Christmas party sign-ups are in the foyer'
         ]
     },
     {
@@ -98,7 +98,7 @@ const meetings: SacramentMeeting[] = [
         ],
         closingHymn: { number: 92, title: 'For the Beauty of the Earth' },
         closingPrayer: 'Brother Scott',
-        announcements: ['No branch meetings this week; all members attend stake conference']
+        announcements: ['No ward meetings this week; all members attend stake conference']
     },
     {
         id: 6,
@@ -115,7 +115,7 @@ const meetings: SacramentMeeting[] = [
         closingHymn: { number: 209, title: 'Hark! The Herald Angels Sing' },
         closingPrayer: 'Sister Turner',
         announcements: [
-            'Branch Christmas party: December 12 at 6:00 PM',
+            'Ward Christmas party: December 12 at 6:00 PM',
             'Christmas sacrament meeting program: December 20'
         ]
     }

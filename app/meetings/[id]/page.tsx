@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchMeeting } from '@/lib/api';
 import MeetingDetail from '@/components/MeetingDetail';
+import PrintButton from '@/components/PrintButton';
 
 type Params = PageProps<'/meetings/[id]'>['params'];
 
@@ -14,11 +15,11 @@ export async function generateMetadata({
     const meeting = await fetchMeeting(id);
 
     if (!meeting) {
-        return { title: 'Meeting Not Found | Lakeview 9th Branch' };
+        return { title: 'Meeting Not Found | Lakeview 9th Ward' };
     }
 
     return {
-        title: `${meeting.date} Meeting | Lakeview 9th Branch`,
+        title: `${meeting.date} Meeting | Lakeview 9th Ward`,
         description: `Sacrament meeting agenda for ${meeting.date}.`,
     };
 }
@@ -37,9 +38,15 @@ async function MeetingContent({ params }: { params: Params }) {
 
     if (!meeting) notFound();
 
-    return <MeetingDetail meeting={meeting} />;
+    return (
+        <>
+            <div className="max-w-2xl mx-auto mb-4 flex justify-end print:hidden">
+                <PrintButton />
+            </div>
+            <MeetingDetail meeting={meeting} />
+        </>
+    );
 }
-
 function MeetingDetailSkeleton() {
     return (
         <div

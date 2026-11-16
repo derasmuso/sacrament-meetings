@@ -43,9 +43,12 @@ function AgendaLine({ label, value }: { label: string; value: string }) {
 
 export default function MeetingDetail({ meeting }: MeetingDetailProps) {
     return (
-        <article className="max-w-2xl mx-auto p-6 bg-white rounded shadow">
+        <article className="max-w-2xl mx-auto p-6 bg-white text-gray-900 rounded shadow print:max-w-none print:p-0 print:shadow-none print:rounded-none">
             {/* Heading */}
             <header className="text-center mb-6 border-b pb-4">
+                <p className="hidden print:block text-sm uppercase tracking-wide text-gray-600">
+                    Lakeview 9th Ward
+                </p>
                 <h1 className="text-2xl font-bold">{meetingTypeLabels[meeting.meetingType]}</h1>
                 <p className="text-gray-600">{formatDate(meeting.date)}</p>
             </header>

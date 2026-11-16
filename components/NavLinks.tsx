@@ -3,34 +3,36 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-interface NavLink {
+export interface NavLink {
     href: string;
     label: string;
+    /** Only highlight on this exact URL, not on pages below it. */
+    exact?: boolean;
 }
 
-const links: NavLink[] = [
-    { href: '/', label: 'Home' },
-    { href: '/meetings', label: 'Meetings' },
-    { href: '/meetings/current', label: 'Current' },
-];
-
-function matches(pathname: string, href: string): boolean {
-    if (href === '/') return pathname === '/';
-    return pathname === href || pathname.startsWith(`${href}/`);
+interface NavListProps {
+    links: NavLink[];
+    label: string;
+    pathname: string | null;
 }
 
-/** Renders the links. Pass `null` to render them with nothing highlighted. */
-export function NavList({ pathname }: { pathname: string | null }) {
-    // Pick the most specific (longest) link that matches the current URL,
-    // so /meetings/current highlights "Current" and not also "Meetings".
+function matches(pathname: string, link: NavLink): boolean {
+    if (pathname === link.href) return true;
+    if (link.exact) return false;
+    return pathname.startsWith(`${link.href}/`);
+}
+
+/** Renders a list of links. Pass `pathname={null}` to render them with nothing highlighted. */
+export function NavList({ links, label, pathname }: NavListProps) {
+    // Pick the most specific (longest) link that matches the current URL.
     const activeHref = pathname
         ? links
-            .filter((link) => matches(pathname, link.href))
+            .filter((link) => matches(pathname, link))
             .sort((a, b) => b.href.length - a.href.length)[0]?.href
         : undefined;
 
     return (
-        <nav aria-label="Main navigation">
+        <nav aria-label={label}>
             <ul className="flex gap-6">
                 {links.map((link) => {
                     const isActive = link.href === activeHref;
@@ -57,7 +59,7 @@ export function NavList({ pathname }: { pathname: string | null }) {
 }
 
 /** Reads the current URL and highlights the matching link. */
-export default function NavLinks() {
+export default function NavLinks({ links, label }: Omit<NavListProps, 'pathname'>) {
     const pathname = usePathname();
-    return <NavList pathname={pathname} />;
+    return <NavList links={links} label={label} pathname={pathname} />;
 }

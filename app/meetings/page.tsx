@@ -4,8 +4,8 @@ import { fetchMeetings } from '@/lib/api';
 import MeetingCard from '@/components/MeetingCard';
 
 export const metadata: Metadata = {
-    title: 'Meetings | Lakeview 9th Branch',
-    description: 'Sacrament meeting agendas for the Lakeview 9th Branch.',
+    title: 'Meetings | Lakeview 9th Ward',
+    description: 'Sacrament meeting agendas for the Lakeview 9th Ward.',
 };
 
 export default function MeetingsPage() {

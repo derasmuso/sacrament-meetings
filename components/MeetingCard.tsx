@@ -16,7 +16,7 @@ export default function MeetingCard({ meeting }: MeetingCardProps) {
 
     return (
         <article className="p-4 border-l-4 border-blue-800 bg-gray-50 rounded">
-            <h3 className="text-xl font-bold mb-2">{formattedDate}</h3>
+            <h2 className="text-xl font-bold mb-2">{formattedDate}</h2>
             <p className="capitalize">{meeting.meetingType} meeting</p>
             <p>Conducting: {meeting.conducting}</p>
             <p className="mt-2">

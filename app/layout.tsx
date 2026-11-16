@@ -12,8 +12,8 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: 'Sacrament Meetings | Lakeview 9th Branch',
-  description: 'Sacrament meeting agendas for the Lakeview 9th Branch.',
+  title: 'Sacrament Meetings | Lakeview 9th Ward',
+  description: 'Sacrament meeting agendas for the Lakeview 9th Ward.',
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

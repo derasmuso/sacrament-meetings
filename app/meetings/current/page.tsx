@@ -7,7 +7,7 @@ import { getMeetings } from '@/lib/meetings-db';
 import { currentSunday } from '@/lib/dates';
 
 export const metadata: Metadata = {
-    title: 'Current Meeting | Lakeview 9th Branch',
+    title: 'Current Meeting | Lakeview 9th Ward',
     description: "Redirects to this week's sacrament meeting agenda.",
 };
 
