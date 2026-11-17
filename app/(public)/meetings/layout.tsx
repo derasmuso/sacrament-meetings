@@ -9,7 +9,7 @@ const meetingLinks: NavLink[] = [
 export default function MeetingsLayout({ children }: LayoutProps<'/meetings'>) {
     return (
         <div className="max-w-4xl mx-auto px-4 py-8 print:max-w-none print:p-0">
-            <div className="mb-6 border-b border-gray-200 pb-3 text-blue-800 print:hidden">
+            <div className="mb-6 border-b border-gray-200 pb-3 text-blue-900 print:hidden">
                 <Suspense
                     fallback={<NavList links={meetingLinks} label="Meetings" pathname={null} />}
                 >

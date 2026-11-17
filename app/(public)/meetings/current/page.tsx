@@ -3,8 +3,8 @@ import { io } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getMeetings } from '@/lib/meetings-db';
 import { currentSunday } from '@/lib/dates';
+import { getMeetingByDate } from '@/lib/meetings-db';
 
 export const metadata: Metadata = {
     title: 'Current Meeting | Lakeview 9th Ward',
@@ -22,8 +22,8 @@ export default function CurrentMeetingPage() {
 async function CurrentMeetingRedirect() {
     await io(); // work out "today" fresh for each visitor
 
-    const sunday = currentSunday();          // e.g. "2026-11-08"
-    const meeting = getMeetings(sunday)[0];  // exact date match, or undefined
+    const sunday = currentSunday();
+    const meeting = await getMeetingByDate(sunday);
 
     if (meeting) {
         redirect(`/meetings/${meeting.id}`);

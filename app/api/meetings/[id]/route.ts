@@ -16,9 +16,8 @@ export async function GET(
         );
     }
 
-    const meeting = getMeetingById(Number(id));
+    const meeting = await getMeetingById(Number(id));
 
-    // 404: valid id, but no meeting has it
     if (!meeting) {
         return Response.json(
             { error: `Meeting ${id} not found.` },

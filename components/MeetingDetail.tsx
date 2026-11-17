@@ -9,6 +9,7 @@ const meetingTypeLabels: Record<SacramentMeeting['meetingType'], string> = {
     testimony: 'Fast and Testimony Meeting',
     stake: 'Stake Conference',
     general: 'General Conference',
+    special: 'Special Program',
 };
 
 function formatDate(isoDate: string): string {
