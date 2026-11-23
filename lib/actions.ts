@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { NeonDbError } from '@neondatabase/serverless';
 import type { SacramentMeeting } from '@/lib/types';
 import {
     addMeeting,
@@ -10,29 +11,54 @@ import {
     deleteMeeting as deleteMeetingRecord,
 } from '@/lib/meetings-db';
 
-const requiredName = z.string().trim().min(1).max(255);
-const hymnNumber = z.coerce.number().int().positive();
-const hymnTitle = z.string().trim().min(1);
+const requiredText = (label: string) =>
+    z
+        .string({ error: `${label} is required.` })
+        .trim()
+        .min(1, `${label} is required.`)
+        .max(255, `${label} must be 255 characters or fewer.`);
+
+const hymnNumber = (hymn: string) =>
+    z.coerce
+        .number({ error: `Enter a number for the ${hymn}.` })
+        .int(`The ${hymn} number must be a whole number.`)
+        .positive(`Enter a number for the ${hymn}.`);
+
+const hymnTitle = (hymn: string) =>
+    z
+        .string({ error: `Enter a title for the ${hymn}.` })
+        .trim()
+        .min(1, `Enter a title for the ${hymn}.`);
 
 const MeetingFormSchema = z.object({
-    date: z.iso.date(),
-    meetingType: z.enum(['regular', 'testimony', 'stake', 'general', 'special']),
-    presiding: requiredName,
-    conducting: requiredName,
-    openingHymnNumber: hymnNumber,
-    openingHymnTitle: hymnTitle,
-    openingPrayer: requiredName,
-    sacramentHymnNumber: hymnNumber,
-    sacramentHymnTitle: hymnTitle,
-    closingHymnNumber: hymnNumber,
-    closingHymnTitle: hymnTitle,
-    closingPrayer: requiredName,
+    date: z.iso.date({ error: 'Enter a valid date.' }),
+    meetingType: z.enum(['regular', 'testimony', 'stake', 'general', 'special'], {
+        error: 'Choose a meeting type.',
+    }),
+    presiding: requiredText('Presiding'),
+    conducting: requiredText('Conducting'),
+    openingHymnNumber: hymnNumber('opening hymn'),
+    openingHymnTitle: hymnTitle('opening hymn'),
+    openingPrayer: requiredText('Invocation'),
+    sacramentHymnNumber: hymnNumber('sacrament hymn'),
+    sacramentHymnTitle: hymnTitle('sacrament hymn'),
+    closingHymnNumber: hymnNumber('closing hymn'),
+    closingHymnTitle: hymnTitle('closing hymn'),
+    closingPrayer: requiredText('Benediction'),
     stakeBusiness: z.boolean(),
     announcements: z.array(z.string()),
     wardBusiness: z.array(z.string()),
 });
 
 const MeetingIdSchema = z.number().int().positive();
+
+export type MeetingField = keyof z.input<typeof MeetingFormSchema>;
+
+export type State = {
+    message?: string | null;
+    errors?: Partial<Record<MeetingField, string[]>>;
+    values?: Record<string, string>;
+};
 
 function toLines(value: FormDataEntryValue | null): string[] {
     if (typeof value !== 'string') return [];
@@ -42,8 +68,8 @@ function toLines(value: FormDataEntryValue | null): string[] {
         .filter((line) => line.length > 0);
 }
 
-function parseMeetingForm(formData: FormData): Omit<SacramentMeeting, 'id' | 'speakers'> {
-    const parsed = MeetingFormSchema.safeParse({
+function readMeetingForm(formData: FormData) {
+    return {
         date: formData.get('date'),
         meetingType: formData.get('meetingType'),
         presiding: formData.get('presiding'),
@@ -59,14 +85,12 @@ function parseMeetingForm(formData: FormData): Omit<SacramentMeeting, 'id' | 'sp
         stakeBusiness: formData.get('stakeBusiness') === 'on',
         announcements: toLines(formData.get('announcements')),
         wardBusiness: toLines(formData.get('wardBusiness')),
-    });
+    };
+}
 
-    if (!parsed.success) {
-        throw new Error('Invalid meeting input.');
-    }
-
-    const m = parsed.data;
-
+function toMeeting(
+    m: z.output<typeof MeetingFormSchema>
+): Omit<SacramentMeeting, 'id' | 'speakers'> {
     return {
         date: m.date,
         meetingType: m.meetingType,
@@ -83,6 +107,24 @@ function parseMeetingForm(formData: FormData): Omit<SacramentMeeting, 'id' | 'sp
     };
 }
 
+function submittedValues(formData: FormData): Record<string, string> {
+    const values: Record<string, string> = {};
+    formData.forEach((value, key) => {
+        if (typeof value === 'string' && !key.startsWith('$')) {
+            values[key] = value;
+        }
+    });
+    return values;
+}
+
+function invalidForm(errors: State['errors'], formData: FormData): State {
+    return {
+        message: 'Some fields need attention. Please fix the errors below and try again.',
+        errors,
+        values: submittedValues(formData),
+    };
+}
+
 function parseMeetingId(id: unknown): number {
     const parsed = MeetingIdSchema.safeParse(id);
     if (!parsed.success) {
@@ -91,20 +133,63 @@ function parseMeetingId(id: unknown): number {
     return parsed.data;
 }
 
-export async function createMeeting(formData: FormData) {
-    const meeting = parseMeetingForm(formData);
+function isDuplicateDate(error: unknown): boolean {
+    return error instanceof NeonDbError && error.code === '23505';
+}
 
-    await addMeeting({ ...meeting, speakers: [] });
+export async function createMeeting(prevState: State, formData: FormData): Promise<State> {
+    const parsed = MeetingFormSchema.safeParse(readMeetingForm(formData));
+    if (!parsed.success) {
+        return invalidForm(z.flattenError(parsed.error).fieldErrors, formData);
+    }
+
+    const meeting = toMeeting(parsed.data);
+
+    try {
+        await addMeeting({ ...meeting, speakers: [] });
+    } catch (error) {
+        console.error('Error creating meeting:', error);
+        if (isDuplicateDate(error)) {
+            return invalidForm(
+                { date: [`A meeting is already scheduled for ${meeting.date}.`] },
+                formData
+            );
+        }
+        throw new Error('Failed to create meeting. Please try again later.');
+    }
 
     revalidatePath('/meetings');
     redirect('/meetings');
 }
 
-export async function updateMeeting(id: number, formData: FormData) {
+export async function updateMeeting(
+    id: number,
+    prevState: State,
+    formData: FormData
+): Promise<State> {
     const meetingId = parseMeetingId(id);
-    const changes = parseMeetingForm(formData);
 
-    const updated = await updateMeetingRecord(meetingId, changes);
+    const parsed = MeetingFormSchema.safeParse(readMeetingForm(formData));
+    if (!parsed.success) {
+        return invalidForm(z.flattenError(parsed.error).fieldErrors, formData);
+    }
+
+    const changes = toMeeting(parsed.data);
+
+    let updated: SacramentMeeting | null;
+    try {
+        updated = await updateMeetingRecord(meetingId, changes);
+    } catch (error) {
+        console.error(`Error updating meeting ${meetingId}:`, error);
+        if (isDuplicateDate(error)) {
+            return invalidForm(
+                { date: [`A meeting is already scheduled for ${changes.date}.`] },
+                formData
+            );
+        }
+        throw new Error('Failed to update meeting. Please try again later.');
+    }
+
     if (!updated) {
         throw new Error(`Meeting ${meetingId} not found.`);
     }
@@ -117,7 +202,12 @@ export async function updateMeeting(id: number, formData: FormData) {
 export async function deleteMeeting(id: number) {
     const meetingId = parseMeetingId(id);
 
-    await deleteMeetingRecord(meetingId);
+    try {
+        await deleteMeetingRecord(meetingId);
+    } catch (error) {
+        console.error(`Error deleting meeting ${meetingId}:`, error);
+        throw new Error('Failed to delete meeting. Please try again later.');
+    }
 
     revalidatePath('/meetings');
 }

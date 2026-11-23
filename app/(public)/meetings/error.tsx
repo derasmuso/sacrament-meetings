@@ -5,31 +5,35 @@ import Link from 'next/link';
 
 export default function MeetingsError({
     error,
-    retry,
+    reset,
 }: {
     error: unknown;
-    retry: () => void;
+    reset: () => void;
 }) {
     useEffect(() => {
-        console.error(error);
+        console.error('Meetings error:', error);
     }, [error]);
 
     return (
-        <section role="alert" className="text-center">
+        <section role="alert" className="max-w-xl mx-auto px-4 py-8 text-center">
             <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
-            <p className="text-gray-600 mb-6">
-                We couldn&apos;t load the meeting information. Please try again.
+            <p className="text-gray-700 mb-6">
+                We couldn&apos;t load or save the meeting information. Any changes you just
+                made may not have been saved. Please try again, or go back to the meetings list.
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-4">
                 <button
                     type="button"
-                    onClick={() => retry()}
-                    className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900"
+                    onClick={() => reset()}
+                    className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800"
                 >
-                    Try again
+                    Try Again
                 </button>
-                <Link href="/" className="px-4 py-2 text-blue-800 hover:underline">
-                    Go home
+                <Link
+                    href="/meetings"
+                    className="rounded border border-blue-800 px-4 py-2 text-blue-800 hover:bg-blue-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800"
+                >
+                    Back to Meetings
                 </Link>
             </div>
         </section>
