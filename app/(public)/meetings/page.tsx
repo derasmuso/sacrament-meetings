@@ -3,6 +3,7 @@ import MeetingCard from '@/components/MeetingCard';
 import { getMeetings, getMeetingsTotalPages } from '@/lib/meetings-db';
 import { MeetingSearch } from '@/components/MeetingSearch';
 import { Pagination } from '@/components/Pagination';
+import Link from 'next/link';
 
 
 export const metadata: Metadata = {
@@ -24,7 +25,15 @@ export default async function MeetingsPage(props: {
 
     return (
         <section>
-            <h1 className="text-3xl font-bold mb-6">Sacrament Meetings</h1>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <h1 className="text-3xl font-bold">Sacrament Meetings</h1>
+                <Link
+                    href="/meetings/new"
+                    className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800"
+                >
+                    Create meeting
+                </Link>
+            </div>
             <MeetingSearch />
             {meetings.length > 0 ? (
                 <ul className="space-y-4">
